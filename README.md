@@ -1,2 +1,3 @@
 # data-cleaning-project
-My first project
+Изучаю пайтон
+
