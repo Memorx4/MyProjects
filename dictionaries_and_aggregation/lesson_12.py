@@ -2,7 +2,7 @@ def category_sal(orders, category):
     sal = 0
     for i in orders:
         if i["category"] == category:
-            sal = i["price"] * i["quantity"]
+            sal += i["price"] * i["quantity"]
     return sal
 
 orders = [
