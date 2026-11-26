@@ -19,7 +19,7 @@ def server(sock, stop):
                     break
                 data.extend(chunk)
                 if len(data) > MAX_MESSAGE:
-                    raise ValueError("Message too large")
+                    raise ValueError("TOO MANY BYTES")
 
             if not stop.is_set() and data:
                 print("\nReceived from", address, ":", data.decode("utf-8"))
@@ -32,7 +32,7 @@ def server(sock, stop):
 def client(ip, port, message):
     data = message.encode("utf-8")
     if not data or len(data) > MAX_MESSAGE:
-        print("Message must contain 1 to 16384 bytes")
+        print("TOO MANY BYTES")
         return
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
