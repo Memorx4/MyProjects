@@ -3,6 +3,7 @@ import socket
 from protocol import MAX_MESSAGE, send_message, receive_message
 
 
+# Приём входящих TCP-соединений
 def server(sock, stop):
     while not stop.is_set():
         try:
@@ -14,6 +15,7 @@ def server(sock, stop):
                 print("Accept error:", error)
             break
 
+        # Получение одного сообщения от клиента
         try:
             conn.settimeout(2)
             packet = receive_message(conn, stop)
@@ -28,12 +30,14 @@ def server(sock, stop):
             conn.close()
 
 
+# Отправка сообщения по IP и порту
 def client(ip, port, message, name):
     data = message.encode("utf-8")
     if not data or len(data) > MAX_MESSAGE:
         print("Message must contain 1 to 16384 bytes")
         return
 
+    # Отдельный сокет для исходящего соединения
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.settimeout(5)

@@ -9,6 +9,7 @@ BROADCAST = "255.255.255.255"
 INTERVAL = 5
 
 
+# Отправка информации о себе по UDP Broadcast
 def broadcast(sock, peer_id, name, tcp_port):
     packet = {
         "app": "LocalPeer",
@@ -21,12 +22,14 @@ def broadcast(sock, peer_id, name, tcp_port):
     sock.sendto(data, (BROADCAST, UDP_PORT))
 
 
+# Фоновый поиск участников сети
 def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
     next_scan = 0
 
     while not stop.is_set():
         remove_expired(peers, lock)
 
+        # Периодическое объявление о себе
         if time.monotonic() >= next_scan:
             try:
                 broadcast(sock, peer_id, name, tcp_port)
@@ -35,6 +38,7 @@ def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
 
             next_scan = time.monotonic() + INTERVAL
 
+        # Приём UDP-пакета и адреса отправителя
         try:
             data, address = sock.recvfrom(4096)
         except socket.timeout:
@@ -43,6 +47,7 @@ def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
             print("Discovery error:", error)
             break
 
+        # Разбор и проверка объявления
         try:
             packet = json.loads(data.decode("utf-8"))
         except (ValueError, RecursionError):
@@ -55,6 +60,7 @@ def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
         other_name = packet.get("name")
         port = packet.get("port")
 
+        # Не добавляем себя и пакеты с неверным ID
         if not isinstance(other_id, str) or len(other_id) != 32 or other_id == peer_id:
             continue
 
@@ -64,4 +70,5 @@ def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
         if not other_name.isprintable() or type(port) is not int or not 1 <= port <= 65535:
             continue
 
+        # Обновление участника по IP из recvfrom()
         update_peer(peers, lock, other_id, other_name, address[0], port)

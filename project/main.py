@@ -7,6 +7,7 @@ from peers import get_peers
 from discovery import UDP_PORT, broadcast, discovery_loop
 
 
+# Проверка порта, по умолчанию — 8000
 def read_port(prompt):
     port = int(input(prompt) or "8000")
     if not 1 <= port <= 65535:
@@ -14,6 +15,7 @@ def read_port(prompt):
     return port
 
 
+# Вывод списка активных участников
 def show_peers(peers, lock):
     participants = get_peers(peers, lock)
 
@@ -26,6 +28,7 @@ def show_peers(peers, lock):
     return participants
 
 
+# Обработка команд пользователя
 def command_loop(udp, peer_id, name, tcp_port, peers, lock):
     print("Commands: peers, scan, send, sendpeer, exit")
 
@@ -46,6 +49,7 @@ def command_loop(udp, peer_id, name, tcp_port, peers, lock):
                 message = input("Enter message: ")
                 client(ip, port, message, name)
 
+            # Отправка участнику из списка
             elif command == "sendpeer":
                 participants = show_peers(peers, lock)
                 if not participants:
@@ -73,11 +77,13 @@ def command_loop(udp, peer_id, name, tcp_port, peers, lock):
 
 
 def main():
+    # Общие данные и сигнал остановки потоков
     stop = threading.Event()
     peers = {}
     lock = threading.Lock()
     peer_id = uuid.uuid4().hex
 
+    # Ресурсы для последующего освобождения
     tcp = None
     udp = None
     threads = []
@@ -88,23 +94,27 @@ def main():
             raise ValueError("Name must contain 1 to 32 printable characters")
         tcp_port = read_port("Enter local TCP port [8000]: ")
 
+        # Настройка TCP-сервера
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tcp.bind(("0.0.0.0", tcp_port))
         tcp.listen()
         tcp.settimeout(0.5)
 
+        # UDP-сокет для широковещательных объявлений
         udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         udp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         udp.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         udp.bind(("0.0.0.0", UDP_PORT))
         udp.settimeout(0.5)
 
+        # Потоки приёма сообщений и поиска участников
         tcp_thread = threading.Thread(target=server, args=(tcp, stop))
         udp_thread = threading.Thread(
             target=discovery_loop,
             args=(udp, stop, peer_id, name, tcp_port, peers, lock)
         )
 
+        # Сохраняем только запущенные потоки
         tcp_thread.start()
         threads.append(tcp_thread)
         udp_thread.start()
@@ -118,6 +128,7 @@ def main():
     except (OSError, ValueError) as error:
         print("Error:", error)
     finally:
+        # Остановка потоков перед закрытием сокетов
         stop.set()
 
         for thread in threads:
@@ -131,4 +142,5 @@ def main():
     print("Program stopped")
 
 
-main()
+if __name__ == "__main__":
+    main()
