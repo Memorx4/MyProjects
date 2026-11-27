@@ -1,6 +1,7 @@
 import socket
 
-MAX_MESSAGE = 16384
+from protocol import MAX_MESSAGE, send_message, receive_message
+
 
 def server(sock, stop):
     while not stop.is_set():
@@ -8,40 +9,38 @@ def server(sock, stop):
             conn, address = sock.accept()
         except socket.timeout:
             continue
+        except OSError as error:
+            if not stop.is_set():
+                print("Accept error:", error)
+            break
 
         try:
             conn.settimeout(2)
-            data = bytearray()
+            packet = receive_message(conn, stop)
 
-            while not stop.is_set():
-                chunk = conn.recv(1024)
-                if not chunk:
-                    break
-                data.extend(chunk)
-                if len(data) > MAX_MESSAGE:
-                    raise ValueError("TOO MANY BYTES")
+            if not stop.is_set():
+                print("\nReceived from", packet["sender"], address, ":", packet["text"])
 
-            if not stop.is_set() and data:
-                print("\nReceived from", address, ":", data.decode("utf-8"))
-
-        except (OSError, ValueError) as error:
-            print("Receive error:", error)
+        except (OSError, ValueError, RecursionError) as error:
+            if not stop.is_set():
+                print("Receive error:", error)
         finally:
             conn.close()
 
-def client(ip, port, message):
+
+def client(ip, port, message, name):
     data = message.encode("utf-8")
     if not data or len(data) > MAX_MESSAGE:
-        print("TOO MANY BYTES")
+        print("Message must contain 1 to 16384 bytes")
         return
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.settimeout(5)
         sock.connect((ip, port))
-        sock.sendall(data)
+        send_message(sock, name, message)
         print("Message sent")
-    except OSError as error:
+    except (OSError, ValueError) as error:
         print("Send error:", error)
     finally:
         sock.close()
