@@ -15,7 +15,7 @@ def broadcast(sock, peer_id, name, tcp_port):
         "id": peer_id,
         "name": name,
         "port": tcp_port
-    }
+    }    
     data = json.dumps(packet).encode("utf-8")
     sock.sendto(data, (BROADCAST, UDP_PORT)) # ОТПРАВКА 
 

@@ -28,10 +28,10 @@ def send_message(sock, name, message):
         "text": message
     }
     check_message(packet)
-    data = json.dumps(packet, ensure_ascii=False).encode("utf-8")
+    data = json.dumps(packet, ensure_ascii=False).encode("utf-8") # ПРЕОБРАЗОВАНИЕ БЫЛО БЕЗ РУССКИХ СТАЛО С РУССКИМИ
 
     if len(data) > MAX_FRAME:
-        raise ValueError("Frame too large")
+        raise ValueError("TOO LARGE")
 
     # Добавляем длину JSON в виде 4 байтов (big endian)
     header = len(data).to_bytes(HEADER_SIZE, "big")
@@ -49,7 +49,7 @@ def recv_exact(sock, size, stop):
         # Читаем не больше оставшегося количества байтов
         chunk = sock.recv(min(4096, size - len(data)))
         if not chunk:
-            raise ValueError("Connection closed before complete frame")
+            raise ValueError("Connection closed before complete frame") # ЗНАЧИТ НАЖАЛ ВЫХОД И С ФАЛЬША ПЕРЕШЕЛ НА ВАР
         data.extend(chunk)
 
     return data

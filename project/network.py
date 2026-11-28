@@ -31,7 +31,7 @@ def server(sock, stop):
 def client(ip, port, message, name):
     data = message.encode("utf-8")
     if not data or len(data) > MAX_MESSAGE:
-        print("Message must contain 1 to 16384 bytes")
+        print("TOO MANY BYTES")
         return
 
     # Отдельный сокет для исходящего соединения
