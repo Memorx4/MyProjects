@@ -4,8 +4,6 @@ import json
 HEADER_SIZE = 4
 MAX_MESSAGE = 16384
 MAX_FRAME = 131072
-
-
 # Проверка структуры и содержимого сообщения
 def check_message(packet):
     if not isinstance(packet, dict) or packet.get("type") != "message":

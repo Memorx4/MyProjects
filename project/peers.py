@@ -3,7 +3,6 @@ import time
 # Время неактивности участника в секундах
 PEER_TIMEOUT = 15
 
-
 # Добавление или обновление записи под блокировкой
 def update_peer(peers, lock, peer_id, name, ip, port):
     lock.acquire()
@@ -11,7 +10,6 @@ def update_peer(peers, lock, peer_id, name, ip, port):
         peers[peer_id] = (name, ip, port, time.monotonic())
     finally:
         lock.release()
-
 
 # Удаление участников, от которых давно нет объявлений
 def remove_expired(peers, lock):

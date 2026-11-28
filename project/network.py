@@ -1,8 +1,6 @@
 import socket
 
 from protocol import MAX_MESSAGE, send_message, receive_message
-
-
 # Приём входящих TCP-соединений
 def server(sock, stop):
     while not stop.is_set():
@@ -28,7 +26,6 @@ def server(sock, stop):
                 print("Receive error:", error)
         finally:
             conn.close()
-
 
 # Отправка сообщения по IP и порту
 def client(ip, port, message, name):

@@ -8,8 +8,7 @@ UDP_PORT = 3133
 BROADCAST = "255.255.255.255"
 INTERVAL = 5
 
-
-# Отправка информации о себе по UDP Broadcast
+# UDP Broadcast
 def broadcast(sock, peer_id, name, tcp_port):
     packet = {
         "app": "LocalPeer",
@@ -17,12 +16,10 @@ def broadcast(sock, peer_id, name, tcp_port):
         "name": name,
         "port": tcp_port
     }
-
     data = json.dumps(packet).encode("utf-8")
-    sock.sendto(data, (BROADCAST, UDP_PORT))
+    sock.sendto(data, (BROADCAST, UDP_PORT)) # ОТПРАВКА 
 
-
-# Фоновый поиск участников сети
+# Фоновый поиск 
 def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
     next_scan = 0
 
@@ -30,7 +27,7 @@ def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
         remove_expired(peers, lock)
 
         # Периодическое объявление о себе
-        if time.monotonic() >= next_scan:
+        if time.monotonic() >= next_scan: # СЧИТАЛКА
             try:
                 broadcast(sock, peer_id, name, tcp_port)
             except OSError as error:
@@ -38,9 +35,9 @@ def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
 
             next_scan = time.monotonic() + INTERVAL
 
-        # Приём UDP-пакета и адреса отправителя
+        # Приём пакета и адреса отправителя
         try:
-            data, address = sock.recvfrom(4096)
+            data, address = sock.recvfrom(4096) # 4096 ОКАЗ МАКС, ПО ДРУГОМУ ИНОГДА НЕ РАБОТАЕТ
         except socket.timeout:
             continue
         except OSError as error:
@@ -49,7 +46,7 @@ def discovery_loop(sock, stop, peer_id, name, tcp_port, peers, lock):
 
         # Разбор и проверка объявления
         try:
-            packet = json.loads(data.decode("utf-8"))
+            packet = json.loads(data.decode("utf-8")) # ПРОСТО ОБРАТКА БРОДКАСТУ, КРЧ СЛОВАРЬ
         except (ValueError, RecursionError):
             continue
 
